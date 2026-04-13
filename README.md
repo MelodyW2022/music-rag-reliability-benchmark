@@ -11,23 +11,27 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+This version of the project simulates a simple content-based music recommender that suggests songs based on a user's preferred vibe. It compares each song to a user taste profile using weighted features such as mood, genre, and energy, then ranks songs by how closely they match. The system is designed to be easy to explain, so each recommendation can be traced back to the features that contributed most to its score.
 
 ---
 
 ## How The System Works
 
-Explain your design in plain language.
+What features does each `Song` use in your system?
 
-Some prompts to answer:
+Each song uses both category labels and numerical audio features. The main features are `genre`, `mood`, `energy`, `acousticness`, and `valence`. I treat mood as the main signal for vibe, genre as the style signal, energy as the intensity signal, acousticness as the organic versus electronic texture signal, and valence as the emotional positivity signal.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+What information does your `UserProfile` store?
 
-You can include a simple diagram or bullet list if helpful.
+The user profile stores the user's preferred genre, preferred mood, and target energy level. These preferences create a simple taste profile that the recommender can compare against each song in the catalog.
+
+How does your `Recommender` compute a score for each song?
+
+The recommender uses a weighted scoring rule. A song gets a large bonus if its mood matches the user's preferred mood and a smaller bonus if its genre matches the user's preferred genre. For numerical features like energy, the system rewards songs that are closer to the user's target by using similarity instead of simply favoring higher values. This makes the score more personalized because the best song is the one closest to the user's preference, not just the song with the biggest number.
+
+How do you choose which songs to recommend?
+
+After scoring every song, the recommender ranks the songs from highest score to lowest score. It then returns the top `k` songs as the recommendations. This means the system first uses a scoring rule to judge one song at a time, then uses a ranking rule to choose the best overall list.
 
 ---
 
@@ -208,4 +212,3 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
-
