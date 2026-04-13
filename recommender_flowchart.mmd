@@ -1,0 +1,22 @@
+flowchart TD
+    A[Input: User Preferences<br/>favorite_mood, favorite_genre,<br/>target_energy, target_acousticness, target_valence]
+    B[Load songs.csv]
+    C[Read one song row from CSV]
+    D[Compare song features to user profile]
+    E[Calculate song score<br/>mood match + genre match +<br/>energy similarity + acousticness similarity + valence similarity]
+    F[Store song with its score]
+    G{More songs left?}
+    H[Sort all scored songs<br/>highest to lowest]
+    I[Select Top K recommendations]
+    J[Output: Ranked list of recommended songs]
+
+    A --> D
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G -- Yes --> C
+    G -- No --> H
+    H --> I
+    I --> J
