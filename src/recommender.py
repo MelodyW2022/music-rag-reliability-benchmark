@@ -1,3 +1,5 @@
+import csv
+from re import S
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
@@ -50,10 +52,37 @@ def load_songs(csv_path: str) -> List[Dict]:
     Loads songs from a CSV file.
     Required by src/main.py
     """
-    # TODO: Implement CSV loading logic
+    # Implement CSV loading logic
     print(f"Loading songs from {csv_path}...")
-    return []
+    songs = []
 
+    """open the file safely
+      "with" automatically closes it afterwards
+      newline="" is the recommended way when using csv, it means don't pre-process newline characters in a special way and let the csv module interpret rows properly
+      encoding="utf-8" is a safe default
+    """
+
+    with open(csv_path, newline="", encoding="utf-8") as csvfile:
+       # reader is an interator over rows and each row is a dict with keys from the header
+       reader = csv.DictReader(csvfile)
+       for row in reader:
+           song = {
+               "id" : int(row["id"])   ,
+                "title" : row["title"],
+                "artist" : row["artist"],
+                "genre" : row["genre"],
+                "mood" : row["mood"],
+                "energy" : float(row["energy"]),
+                "tempo_bpm" : float(row["tempo_bpm"]),
+                "valence" : float(row["valence"]),
+                "danceability" : float(row["danceability"]),
+                "acousticness" : float(row["acousticness"])
+           }
+           songs.append(song)
+
+
+    return songs
+    
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
     """
     Functional implementation of the recommendation logic.

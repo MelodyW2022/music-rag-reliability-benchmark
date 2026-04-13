@@ -54,20 +54,20 @@ This system might over-prioritize mood and genre labels, which could cause it to
 1. Create a virtual environment (optional but recommended):
 
    ```bash
-   python -m venv .venv
+   python3 -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
 
 2. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 3. Run the app:
 
 ```bash
-python -m src.main
+python3 -m src.main
 ```
 
 ### Running Tests
@@ -75,7 +75,7 @@ python -m src.main
 Run the starter tests with:
 
 ```bash
-pytest
+python3 -m pytest
 ```
 
 You can add more tests in `tests/test_recommender.py`.
