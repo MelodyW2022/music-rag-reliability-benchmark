@@ -17,7 +17,7 @@ def main() -> None:
     print(f"Loaded songs: {len(songs)}")
 
     # Starter example profile
-    user_prefs = {"genre": "pop", "mood": "happy", "energy": 0.8}
+    user_prefs = {"genre": "pop", "mood": "happy", "energy": 0.8, "acousticness": 0.2, "valence": 0.9}
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
 
@@ -30,6 +30,6 @@ def main() -> None:
         print(f"Because: {explanation}")
         print()
 
-
+#It’s important because importing a file is usually meant to reuse its functions, not accidentally run the whole program.
 if __name__ == "__main__":
     main()
