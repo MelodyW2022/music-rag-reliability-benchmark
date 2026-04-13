@@ -48,19 +48,16 @@ class Recommender:
         return "Explanation placeholder"
 
 def load_songs(csv_path: str) -> List[Dict]:
-    """
-    Loads songs from a CSV file.
-    Required by src/main.py
-    """
+    """Load songs from a CSV file into a list of dictionaries."""
     # Implement CSV loading logic
     print(f"Loading songs from {csv_path}...")
     songs = []
 
-    """open the file safely
-      "with" automatically closes it afterwards
-      newline="" is the recommended way when using csv, it means don't pre-process newline characters in a special way and let the csv module interpret rows properly
-      encoding="utf-8" is a safe default
-    """
+    #open the file safely
+    #"with" automatically closes it afterwards
+    #newline="" is the recommended way when using csv, it means don't pre-process newline characters in a special way and let the csv module interpret rows properly
+    #encoding="utf-8" is a safe default
+    
 
     with open(csv_path, newline="", encoding="utf-8") as csvfile:
        # reader is an interator over rows and each row is a dict with keys from the header
@@ -84,10 +81,7 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
     
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
-    """
+    """Score, rank, and return the top k song recommendations."""
     #  Implement scoring and ranking logic
     # Expected return format: (song_dict, score, explanation)
     scored_songs = []
@@ -102,6 +96,7 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tup
     return ranked[:k]
 
 def score_song(user_prefs: Dict, song: Dict) ->Tuple[float, List[str]]:
+    """Compute one song's score and the reasons for that score."""
     score = 0.0
     reasons = []
     if song["mood"] == user_prefs["mood"]:
@@ -114,9 +109,9 @@ def score_song(user_prefs: Dict, song: Dict) ->Tuple[float, List[str]]:
     energy_similarity = 1 - abs(song["energy"] - user_prefs["energy"])
     energy_points = 2.0 * energy_similarity
     score += energy_points
-    """What :.2f means:
-    f = format as a floating-point number
-    .2 = show 2 digits after the decimal point"""
+    # What :.2f means:
+    # f = format as a floating-point number
+    # .2 = show 2 digits after the decimal point
     reasons.append(f"energy similarity (+{energy_points: .2f})")
     
     acoustic_similarity = 1 - abs(song["acousticness"] - user_prefs["acousticness"])
