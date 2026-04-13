@@ -23,15 +23,27 @@ Each song uses both category labels and numerical audio features. The main featu
 
 What information does your `UserProfile` store?
 
-The user profile stores the user's preferred genre, preferred mood, and target energy level. These preferences create a simple taste profile that the recommender can compare against each song in the catalog.
+The user profile stores the user's preferred genre, preferred mood, and target values for the numerical vibe features I chose to use, especially energy, acousticness, and valence. These preferences create a simple taste profile that the recommender can compare against each song in the catalog.
 
 How does your `Recommender` compute a score for each song?
 
-The recommender uses a weighted scoring rule. A song gets a large bonus if its mood matches the user's preferred mood and a smaller bonus if its genre matches the user's preferred genre. For numerical features like energy, the system rewards songs that are closer to the user's target by using similarity instead of simply favoring higher values. This makes the score more personalized because the best song is the one closest to the user's preference, not just the song with the biggest number.
+The recommender uses a weighted scoring rule. My finalized algorithm recipe is:
+
+- `+3.0` points if the song's mood matches the user's favorite mood
+- `+2.0` points if the song's genre matches the user's favorite genre
+- `+2.0 * (1 - abs(song.energy - user.target_energy))`
+- `+1.0 * (1 - abs(song.acousticness - user.target_acousticness))`
+- `+0.5 * (1 - abs(song.valence - user.target_valence))`
+
+This recipe makes mood the strongest signal because the project is centered on matching a listener's vibe. Genre still matters, but it acts more like a style preference. For numerical features like energy, acousticness, and valence, the system rewards songs that are closer to the user's target values instead of simply favoring higher numbers.
 
 How do you choose which songs to recommend?
 
 After scoring every song, the recommender ranks the songs from highest score to lowest score. It then returns the top `k` songs as the recommendations. This means the system first uses a scoring rule to judge one song at a time, then uses a ranking rule to choose the best overall list.
+
+What biases or limitations do you expect from this system?
+
+This system might over-prioritize mood and genre labels, which could cause it to miss songs from other genres that still match the user's overall vibe. It may also favor songs that are close to the chosen numerical targets and ignore other important qualities, such as lyrics, vocals, cultural context, or songs that blend multiple moods at once.
 
 ---
 
