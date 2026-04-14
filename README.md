@@ -97,8 +97,16 @@ Summarize some limitations of your recommender.
 Examples:
 
 - It only works on a tiny catalog
+
+Yes. The recommender only has a small song catalog, so it cannot represent the full range of musical taste. Some genres and moods appear only once, which makes the system less reliable for users who want those styles.
+
 - It does not understand lyrics or language
+
+Yes. The model only looks at the structured song features in the CSV, such as mood, genre, energy, acousticness, and valence. It does not understand lyrics, language, cultural meaning, or personal memories that can strongly affect how people experience a song.
+
 - It might over favor one genre or mood
+
+Yes. In the current scoring rule, the model is mood-first, so songs that match the user's preferred mood get the biggest bonus. That helps the recommender stay aligned with vibe, but it can also cause it to overlook songs from other moods or styles that might still be a good match.
 
 You will go deeper on this in your model card.
 
@@ -113,7 +121,12 @@ Read and complete `model_card.md`:
 Write 1 to 2 paragraphs here about what you learned:
 
 - about how recommenders turn data into predictions
+
+I learned that recommenders turn data into predictions by taking a user's preferences, comparing them to item features, and then using a scoring rule to rank the best matches. Even in a small project like this one, a few design choices such as how much to weight mood, genre, or energy can change the recommendations a lot. Building the system made it easier to see that recommendation results are not magic. They come from simple rules, and those rules shape what the user ends up seeing.
+
 - about where bias or unfairness could show up in systems like this
+
+I also learned that bias can show up whenever the data or scoring rule represents some tastes better than others. Because my model is mood-first and uses a small catalog, it may give stronger recommendations to users whose preferences fit the available songs and weaker recommendations to users with mixed or less represented tastes. That means a recommender can feel fair for some people while still narrowing choices, missing good songs, or reducing diversity for others.
 
 
 ---
