@@ -79,11 +79,20 @@ How you checked whether the recommender behaved as expected.
 Prompts:  
 
 - Which user profiles you tested  
+
+I tested five user profiles: `high_energy_pop`, `chill_lofi`, `deep_intense_rock`, `conflicting_vibe`, and `peaceful_punk`. These profiles gave me a mix of normal listening preferences and adversarial cases with conflicting signals.
+
 - What you looked for in the recommendations  
+
+I looked at whether the top songs matched the intended vibe, not just the exact genre or mood labels. I also checked whether the explanation strings made sense and whether songs with similar energy, acousticness, and valence were being ranked in a reasonable order.
+
 - What surprised you  
+
+What surprised me most was how often songs from other genres still appeared when their numeric features were close to the target. A good example is `Gym Hero`, which kept showing up for profiles that wanted intensity or upbeat energy even when the genre was not the main match. This made sense after I looked at the explanation strings, because the song often scored well on energy and other vibe features.
+
 - Any simple tests or comparisons you ran  
 
-No need for numeric metrics unless you created some.
+I compared the results across all five profiles and wrote down how the top recommendations changed. I also ran a sensitivity test by temporarily doubling the energy weight from `2.0` to `4.0` and then comparing the rankings before and after the change. That test showed that the system became more intensity-focused and less genre-aware, which helped confirm that my current baseline model is mainly mood-first, with genre and energy acting as secondary signals.
 
 ---
 
