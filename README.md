@@ -126,10 +126,6 @@ This change made the recommendations different more than it made them more accur
 
 ---
 
-## 7. `model_card_template.md`
+##`model_card.md`
 
 This starter template content is now fully answered in [model_card.md](model_card.md). See that file for the completed model card.
-
-```
-
-```
