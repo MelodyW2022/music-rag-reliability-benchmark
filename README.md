@@ -47,6 +47,40 @@ This system might over-prioritize mood and genre labels, which could cause it to
 
 ---
 
+## Visual Results
+
+Part 1: Recommender flowchart
+
+![Recommender Flowchart](assets/recommender_flowchart.png)
+
+Part 2: Terminal output with one starter example profile
+
+![Starter Profile Terminal Output](assets/recommendations_terminal_output.png)
+
+Part 3: Terminal output for five different user profiles
+
+High-Energy Pop
+
+![High-Energy Pop Recommendations](assets/high-energy-pop-top-5-recommendations.png)
+
+Chill Lofi
+
+![Chill Lofi Recommendations](assets/chill-lofi-top-5-recommendations.png)
+
+Deep Intense Rock
+
+![Deep Intense Rock Recommendations](assets/deep-intense-rock-top-5-recommendations.png)
+
+Conflicting Vibe
+
+![Conflicting Vibe Recommendations](assets/conflicting-vibe-top-5-recommendations.png)
+
+Peaceful Punk
+
+![Peaceful Punk Recommendations](assets/peaceful-punk-top-5-recommendations.png)
+
+---
+
 ## Getting Started
 
 ### Setup
@@ -57,6 +91,8 @@ This system might over-prioritize mood and genre labels, which could cause it to
    python3 -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+
+   ```
 
 2. Install dependencies
 
@@ -90,159 +126,10 @@ This change made the recommendations different more than it made them more accur
 
 ---
 
-## Limitations and Risks
-
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-
-Yes. The recommender only has a small song catalog, so it cannot represent the full range of musical taste. Some genres and moods appear only once, which makes the system less reliable for users who want those styles.
-
-- It does not understand lyrics or language
-
-Yes. The model only looks at the structured song features in the CSV, such as mood, genre, energy, acousticness, and valence. It does not understand lyrics, language, cultural meaning, or personal memories that can strongly affect how people experience a song.
-
-- It might over favor one genre or mood
-
-Yes. In the current scoring rule, the model is mood-first, so songs that match the user's preferred mood get the biggest bonus. That helps the recommender stay aligned with vibe, but it can also cause it to overlook songs from other moods or styles that might still be a good match.
-
-You will go deeper on this in your model card.
-
----
-
-## Reflection
-
-Read and complete `model_card.md`:
-
-[**Model Card**](model_card.md)
-
-Write 1 to 2 paragraphs here about what you learned:
-
-- about how recommenders turn data into predictions
-
-I learned that recommenders turn data into predictions by taking a user's preferences, comparing them to item features, and then using a scoring rule to rank the best matches. Even in a small project like this one, a few design choices such as how much to weight mood, genre, or energy can change the recommendations a lot. Building the system made it easier to see that recommendation results are not magic. They come from simple rules, and those rules shape what the user ends up seeing.
-
-- about where bias or unfairness could show up in systems like this
-
-I also learned that bias can show up whenever the data or scoring rule represents some tastes better than others. Because my model is mood-first and uses a small catalog, it may give stronger recommendations to users whose preferences fit the available songs and weaker recommendations to users with mixed or less represented tastes. That means a recommender can feel fair for some people while still narrowing choices, missing good songs, or reducing diversity for others.
-
-
----
-
 ## 7. `model_card_template.md`
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+This starter template content is now fully answered in [model_card.md](model_card.md). See that file for the completed model card.
 
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
+```
 
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-
-Yes. Because the model is mood-first, songs that do not match the user's preferred mood can be pushed down even if they are still a good fit in other ways. The small dataset also means some genres and moods have only one song, so those styles have fewer chances to appear in recommendations.
-
-- Does it treat all users as if they have the same taste shape
-
-Yes. The system assumes every user can be described by one favorite mood, one favorite genre, and one target value for features like energy, acousticness, and valence. Real listeners usually have more flexible tastes that change by time, activity, or context, so this model oversimplifies user preference.
-
-- Is it biased toward high energy or one genre by default
-
-Not by default. In its current version, the model is mainly biased toward mood because mood receives the largest bonus in the scoring rule. Genre and energy still matter, but they act as secondary signals, so the system is more likely to favor songs that match the user's main mood than songs from one specific genre or energy level.
-
-- How could this be unfair if used in a real product
-
-In a real product, this could make recommendations feel narrow or repetitive, especially for users with mixed or unusual tastes. It could also reduce visibility for less represented genres, moods, or artists because the system keeps rewarding the same kinds of matches instead of encouraging diversity or discovery.
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
+```
