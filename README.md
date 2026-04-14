@@ -84,11 +84,9 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+I tested the system's sensitivity by doubling the weight on energy, changing the energy similarity contribution from `2.0 * similarity` to `4.0 * similarity`. This made the recommender much more intensity-focused. Across profiles like `high_energy_pop`, `deep_intense_rock`, and `conflicting_vibe`, songs with similar energy levels rose in the rankings even when they did not match the user's preferred genre. The clearest example was the `peaceful_punk` profile, where calm low-energy songs outranked the actual punk track because their energy values were much closer to the user's target.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+This change made the recommendations different more than it made them more accurate. In some cases it improved the vibe match by surfacing songs with a similar intensity, but it also made the system drift away from the user's stated style preferences. Overall, the experiment showed that energy is a powerful feature, but if it is weighted too heavily, the recommender becomes less genre-aware and less precise.
 
 ---
 
@@ -186,9 +184,20 @@ Where does your recommender struggle
 
 Some prompts:
 - Does it ignore some genres or moods
+
+Yes. Because the model is mood-first, songs that do not match the user's preferred mood can be pushed down even if they are still a good fit in other ways. The small dataset also means some genres and moods have only one song, so those styles have fewer chances to appear in recommendations.
+
 - Does it treat all users as if they have the same taste shape
+
+Yes. The system assumes every user can be described by one favorite mood, one favorite genre, and one target value for features like energy, acousticness, and valence. Real listeners usually have more flexible tastes that change by time, activity, or context, so this model oversimplifies user preference.
+
 - Is it biased toward high energy or one genre by default
+
+Not by default. In its current version, the model is mainly biased toward mood because mood receives the largest bonus in the scoring rule. Genre and energy still matter, but they act as secondary signals, so the system is more likely to favor songs that match the user's main mood than songs from one specific genre or energy level.
+
 - How could this be unfair if used in a real product
+
+In a real product, this could make recommendations feel narrow or repetitive, especially for users with mixed or unusual tastes. It could also reduce visibility for less represented genres, moods, or artists because the system keeps rewarding the same kinds of matches instead of encouraging diversity or discovery.
 
 ---
 
