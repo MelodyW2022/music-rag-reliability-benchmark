@@ -1,6 +1,5 @@
 import csv
-from re import S
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
 from dataclasses import dataclass
 
 
@@ -33,7 +32,8 @@ class UserProfile:
     favorite_genre: str
     favorite_mood: str
     target_energy: float
-    likes_acoustic: bool
+    target_acousticness: float
+    target_valence: float
 
 
 class Recommender:
@@ -45,13 +45,57 @@ class Recommender:
     def __init__(self, songs: List[Song]):
         self.songs = songs
 
+    def _score_song(self, user: UserProfile, song: Song) -> Tuple[float, List[str]]:
+        """
+        Score one song against one user profile and collect the reasons.
+        """
+        score = 0.0
+        reasons: List[str] = []
+
+        if song.mood == user.favorite_mood:
+            score += 3.0
+            reasons.append("mood match (+3.0)")
+
+        if song.genre == user.favorite_genre:
+            score += 2.0
+            reasons.append("genre match (+2.0)")
+
+        energy_similarity = 1 - abs(song.energy - user.target_energy)
+        energy_points = 2.0 * energy_similarity
+        score += energy_points
+        reasons.append(f"energy similarity (+{energy_points:.2f})")
+
+        acoustic_similarity = 1 - abs(song.acousticness - user.target_acousticness)
+        acoustic_points = 1.0 * acoustic_similarity
+        score += acoustic_points
+        reasons.append(f"acoustic similarity (+{acoustic_points:.2f})")
+
+        valence_similarity = 1 - abs(song.valence - user.target_valence)
+        valence_points = 0.5 * valence_similarity
+        score += valence_points
+        reasons.append(f"valence similarity (+{valence_points:.2f})")
+
+        return score, reasons
+
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        """
+        Rank all songs by score and return the top k songs.
+        """
+        scored_songs: List[Tuple[Song, float]] = []
+
+        for song in self.songs:
+            score, _ = self._score_song(user, song)
+            scored_songs.append((song, score))
+
+        scored_songs.sort(key=lambda item: item[1], reverse=True)
+        return [song for song, _ in scored_songs[:k]]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        """
+        Return a short explanation string for why this song was recommended.
+        """
+        _, reasons = self._score_song(user, song)
+        return f"{song.title} fits your profile because {', '.join(reasons)}."
 
 
 def load_songs(csv_path: str) -> List[Dict]:
