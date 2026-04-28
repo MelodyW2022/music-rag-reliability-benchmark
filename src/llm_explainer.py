@@ -5,6 +5,7 @@ import re
 from typing import Optional
 
 from .explainer import RecommendationExplanation, explain_recommendation
+from .guardrails import GuardrailReport, check_explanation
 from .retriever import RetrievalResult
 
 
@@ -24,6 +25,7 @@ class LLMExplanationResult:
     used_llm: bool
     raw_response: Optional[str]
     fallback_reason: Optional[str]
+    guardrail_report: Optional[GuardrailReport]
 
 
 def explain_with_gemini(
@@ -41,28 +43,12 @@ def explain_with_gemini(
         return _deterministic_fallback(result, "missing Gemini API key")
 
     try:
-        from google import genai
-        from google.genai import types
+        raw_response = _generate_gemini_response_text(result, model)
     except ImportError:
         return _deterministic_fallback(result, "google-genai package is not installed")
-
-    prompt = build_gemini_prompt(result)
-
-    try:
-        client = genai.Client()
-        response = client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                candidate_count=1,
-                max_output_tokens=180,
-            ),
-        )
     except Exception as exc:
         return _deterministic_fallback(result, f"Gemini request failed: {exc}")
 
-    raw_response = getattr(response, "text", None)
     if not raw_response:
         return _deterministic_fallback(result, "Gemini returned an empty response")
 
@@ -74,21 +60,35 @@ def explain_with_gemini(
             used_llm=False,
             raw_response=raw_response,
             fallback_reason="Gemini response did not contain a valid explanation",
+            guardrail_report=None,
         )
 
     track = result.track
+    gemini_explanation = RecommendationExplanation(
+        track_name=track.track_name,
+        artist_name=track.artist_name,
+        genre=track.genre,
+        score=result.score,
+        explanation=explanation_text,
+        evidence=result.evidence,
+    )
+    guardrail_report = check_explanation(gemini_explanation)
+
+    if guardrail_report.fallback_explanation:
+        return LLMExplanationResult(
+            explanation=explain_recommendation(result),
+            used_llm=False,
+            raw_response=raw_response,
+            fallback_reason="Gemini explanation failed guardrails",
+            guardrail_report=guardrail_report,
+        )
+
     return LLMExplanationResult(
-        explanation=RecommendationExplanation(
-            track_name=track.track_name,
-            artist_name=track.artist_name,
-            genre=track.genre,
-            score=result.score,
-            explanation=explanation_text,
-            evidence=result.evidence,
-        ),
+        explanation=gemini_explanation,
         used_llm=True,
         raw_response=raw_response,
         fallback_reason=None,
+        guardrail_report=guardrail_report,
     )
 
 
@@ -120,6 +120,26 @@ Track:
 Retrieval evidence:
 {evidence_lines}
 """.strip()
+
+
+def _generate_gemini_response_text(result: RetrievalResult, model: str) -> Optional[str]:
+    """
+    Call Gemini and return the raw response text.
+    """
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client()
+    response = client.models.generate_content(
+        model=model,
+        contents=build_gemini_prompt(result),
+        config=types.GenerateContentConfig(
+            temperature=0.2,
+            candidate_count=1,
+            max_output_tokens=180,
+        ),
+    )
+    return getattr(response, "text", None)
 
 
 def parse_gemini_explanation(raw_response: str) -> Optional[str]:
@@ -177,4 +197,5 @@ def _deterministic_fallback(
         used_llm=False,
         raw_response=None,
         fallback_reason=reason,
+        guardrail_report=None,
     )

@@ -1,6 +1,7 @@
 import pytest
 
 from src.data_loader import TrackRecord
+import src.llm_explainer as llm_explainer
 from src.llm_explainer import (
     build_gemini_prompt,
     explain_with_gemini,
@@ -88,6 +89,60 @@ def test_explain_with_gemini_uses_deterministic_fallback_without_key(
     assert result.used_llm is False
     assert result.raw_response is None
     assert result.fallback_reason == "missing Gemini API key"
+    assert result.guardrail_report is None
     assert result.explanation.track_name == "Strong Match"
     assert result.explanation.evidence == retrieval_result.evidence
+    assert "Strong Match by Test Artist" in result.explanation.explanation
+
+
+def test_explain_with_gemini_returns_safe_guardrail_checked_output(
+    monkeypatch: pytest.MonkeyPatch,
+    retrieval_result: RetrievalResult,
+):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(
+        llm_explainer,
+        "_generate_gemini_response_text",
+        lambda result, model: (
+            '{"explanation": "Strong Match by Test Artist matches the request '
+            'using retrieved genre and audio-feature evidence."}'
+        ),
+    )
+
+    result = explain_with_gemini(retrieval_result)
+
+    assert result.used_llm is True
+    assert result.raw_response is not None
+    assert result.fallback_reason is None
+    assert result.guardrail_report is not None
+    assert result.guardrail_report.passed is True
+    assert result.explanation.explanation == (
+        "Strong Match by Test Artist matches the request using retrieved genre "
+        "and audio-feature evidence."
+    )
+    assert result.explanation.evidence == retrieval_result.evidence
+
+
+def test_explain_with_gemini_falls_back_when_guardrails_fail(
+    monkeypatch: pytest.MonkeyPatch,
+    retrieval_result: RetrievalResult,
+):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(
+        llm_explainer,
+        "_generate_gemini_response_text",
+        lambda result, model: (
+            '{"explanation": "Strong Match has emotional lyrics and rich vocals."}'
+        ),
+    )
+
+    result = explain_with_gemini(retrieval_result)
+
+    assert result.used_llm is False
+    assert result.raw_response is not None
+    assert result.fallback_reason == "Gemini explanation failed guardrails"
+    assert result.guardrail_report is not None
+    assert result.guardrail_report.passed is False
+    assert result.guardrail_report.unsupported_terms == ["lyrics", "vocals"]
+    assert result.explanation.track_name == "Strong Match"
     assert "Strong Match by Test Artist" in result.explanation.explanation
