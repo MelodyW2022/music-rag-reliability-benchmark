@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="560" viewBox="0 0 1120 560">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <style>
+      .bg { fill: #ffffff; }
+      .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; rx: 10; }
+      .safe { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 10; }
+      .warn { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 10; }
+      .text { font-family: Arial, sans-serif; font-size: 17px; fill: #0f172a; font-weight: 600; }
+      .small { font-family: Arial, sans-serif; font-size: 14px; fill: #334155; }
+      .arrow { stroke: #334155; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .label { font-family: Arial, sans-serif; font-size: 13px; fill: #1e293b; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1120" height="560" class="bg" />
+  <text x="40" y="40" class="text" font-size="24">Music RAG Reliability Benchmark Architecture</text>
+
+  <rect x="40" y="80" width="180" height="70" class="box" />
+  <text x="70" y="112" class="text">CLI Command</text>
+  <text x="70" y="134" class="small">demo / trace / evaluate</text>
+
+  <rect x="280" y="80" width="190" height="70" class="box" />
+  <text x="305" y="112" class="text">Data Loader</text>
+  <text x="305" y="134" class="small">500-song CSV sample</text>
+
+  <rect x="530" y="80" width="190" height="70" class="box" />
+  <text x="555" y="112" class="text">Offline Retriever</text>
+  <text x="555" y="134" class="small">rank tracks + evidence</text>
+
+  <rect x="780" y="80" width="230" height="70" class="box" />
+  <text x="805" y="112" class="text">Retrieved Result</text>
+  <text x="805" y="134" class="small">track, score, evidence</text>
+
+  <rect x="530" y="230" width="210" height="80" class="safe" />
+  <text x="555" y="263" class="text">Deterministic</text>
+  <text x="555" y="285" class="small">grounded fallback explainer</text>
+
+  <rect x="780" y="230" width="210" height="80" class="box" />
+  <text x="805" y="263" class="text">Optional Gemini</text>
+  <text x="805" y="285" class="small">explanation wording only</text>
+
+  <rect x="780" y="380" width="210" height="80" class="warn" />
+  <text x="805" y="413" class="text">Guardrails</text>
+  <text x="805" y="435" class="small">parser, claims, evidence</text>
+
+  <rect x="530" y="380" width="210" height="80" class="safe" />
+  <text x="555" y="413" class="text">Final Safe Output</text>
+  <text x="555" y="435" class="small">shown to user</text>
+
+  <rect x="280" y="380" width="190" height="80" class="box" />
+  <text x="305" y="413" class="text">Evaluator</text>
+  <text x="305" y="435" class="small">rates + evidence coverage</text>
+
+  <path d="M220 115 L280 115" class="arrow" />
+  <path d="M470 115 L530 115" class="arrow" />
+  <path d="M720 115 L780 115" class="arrow" />
+  <path d="M895 150 L895 230" class="arrow" />
+  <path d="M780 270 L740 270" class="arrow" />
+  <path d="M885 310 L885 380" class="arrow" />
+  <path d="M780 420 L740 420" class="arrow" />
+  <path d="M635 310 L635 380" class="arrow" />
+  <path d="M530 420 L470 420" class="arrow" />
+  <path d="M780 440 C650 515 430 515 375 460" class="arrow" />
+
+  <text x="635" y="248" class="label">fallback if unavailable</text>
+  <text x="875" y="355" class="label">validate LLM text</text>
+  <text x="650" y="355" class="label">safe fallback</text>
+  <text x="690" y="505" class="label">metrics from guardrail reports</text>
+</svg>

@@ -21,22 +21,7 @@ Video walkthrough: **TODO: paste Loom or unlisted YouTube link here before submi
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[CLI user command] --> B[Load CSV or fallback demo records]
-    B --> C[Offline retriever]
-    C --> D[Retrieved tracks + evidence]
-    D --> E[Deterministic explainer]
-    D --> F[Optional Gemini explainer]
-    F --> G[JSON parser]
-    G --> H[Guardrails]
-    H -->|safe| I[Final explanation]
-    H -->|unsafe or malformed| E
-    E --> I
-    I --> J[Demo or trace output]
-    H --> K[Evaluator metrics]
-    E --> K
-```
+![System Architecture](assets/system_architecture.svg)
 
 The system does not ask Gemini to choose songs. Retrieval ranks tracks first using genre and audio-feature similarity. Gemini is only allowed to rewrite explanations, and guardrails reject unsupported claims like lyrics, vocals, fan reactions, or chart status.
 
