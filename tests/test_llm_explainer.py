@@ -45,14 +45,16 @@ def test_build_gemini_prompt_uses_retrieved_fields_and_guardrails(
 ):
     prompt = build_gemini_prompt(retrieval_result)
 
-    assert "Use only the provided track metadata and retrieval evidence." in prompt
-    assert "Return only valid JSON" in prompt
-    assert "- name: Strong Match" in prompt
-    assert "- artist: Test Artist" in prompt
-    assert "- retrieval_score: 6.50" in prompt
-    assert "- derived_vibe_tags: high_energy, positive, danceable" in prompt
-    assert "- energy closeness: 0.82 vs target 0.80 (+1.96)" in prompt
-    assert "Do not mention lyrics, vocals, storytelling" in prompt
+    assert "Use only the track metadata and retrieval evidence below." in prompt
+    assert "Return exactly one valid JSON object" in prompt
+    assert "name=Strong Match" in prompt
+    assert "artist=Test Artist" in prompt
+    assert "retrieval_score=6.50" in prompt
+    assert "derived_vibe_tags=high_energy, positive, danceable" in prompt
+    assert "energy closeness: 0.82 vs target 0.80 (+1.96)" in prompt
+    assert "lyrics" in prompt
+    assert "vocals" in prompt
+    assert "storytelling" in prompt
 
 
 def test_parse_gemini_explanation_accepts_plain_json():

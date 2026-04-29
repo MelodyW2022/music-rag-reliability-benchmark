@@ -97,28 +97,25 @@ def build_gemini_prompt(result: RetrievalResult) -> str:
     Build a strict prompt that limits Gemini to retrieved evidence only.
     """
     track = result.track
-    evidence_lines = "\n".join(f"- {item}" for item in result.evidence)
+    evidence_summary = "; ".join(result.evidence)
     vibe_tags = ", ".join(track.vibe_tags) if track.vibe_tags else "none"
 
     return f"""
-You are writing a grounded music recommendation explanation.
+Write one grounded music recommendation explanation.
 
-Use only the provided track metadata and retrieval evidence.
-Do not mention lyrics, vocals, storytelling, live performance, reviews, awards,
-chart status, fan reactions, or anything not present in the evidence.
+Use only the track metadata and retrieval evidence below. Do not mention lyrics,
+vocals, storytelling, live performance, reviews, awards, chart status, or fan
+reactions.
 
-Return only valid JSON with this exact shape:
+Return exactly one valid JSON object on one line with this shape:
 {{"explanation": "one concise explanation, 1-2 sentences"}}
 
 Track:
-- name: {track.track_name}
-- artist: {track.artist_name}
-- genre: {track.genre}
-- retrieval_score: {result.score:.2f}
-- derived_vibe_tags: {vibe_tags}
+name={track.track_name}; artist={track.artist_name}; genre={track.genre};
+retrieval_score={result.score:.2f}; derived_vibe_tags={vibe_tags}
 
-Retrieval evidence:
-{evidence_lines}
+Evidence:
+{evidence_summary}
 """.strip()
 
 
@@ -136,7 +133,8 @@ def _generate_gemini_response_text(result: RetrievalResult, model: str) -> Optio
         config=types.GenerateContentConfig(
             temperature=0.2,
             candidate_count=1,
-            max_output_tokens=180,
+            max_output_tokens=2048,
+            response_mime_type="application/json",
         ),
     )
     return getattr(response, "text", None)
