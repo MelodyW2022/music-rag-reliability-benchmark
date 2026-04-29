@@ -137,6 +137,13 @@ Measured metrics:
 
 The evaluator intentionally includes one safe response, one unsupported-claim response, and one malformed response. This makes the guardrail behavior visible without requiring a live Gemini call during grading.
 
+## Stretch Features
+
+This project includes two stretch-feature candidates:
+
+- **RAG Enhancement:** The original 18-song recommender was extended with offline retrieval over a deterministic 500-song Spotify-style dataset sample. Retrieval produces evidence strings that are used by explanations, guardrails, traces, and evaluator metrics.
+- **Test Harness / Evaluation Script:** `src/evaluator.py` and `python3 -m src.main evaluate` run predefined reliability cases and print unsupported-claim rate, fallback rate, format failure rate, and global evidence coverage.
+
 ## Design Decisions
 
 - Retrieval is offline and deterministic so recommendations are reproducible.
