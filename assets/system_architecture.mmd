@@ -1,0 +1,14 @@
+flowchart TD
+    A[CLI user command] --> B[Load CSV or fallback demo records]
+    B --> C[Offline retriever]
+    C --> D[Retrieved tracks + evidence]
+    D --> E[Deterministic explainer]
+    D --> F[Optional Gemini explainer]
+    F --> G[JSON parser]
+    G --> H[Guardrails]
+    H -->|safe| I[Final explanation]
+    H -->|unsafe or malformed| E
+    E --> I
+    I --> J[Demo or trace output]
+    H --> K[Evaluator metrics]
+    E --> K

@@ -1,131 +1,171 @@
-# 🎵 Music Recommender Simulation
+# Music RAG Reliability Benchmark
 
-## Project Summary
+## Summary
 
-In this project you will build and explain a small music recommender system.
+This project extends my original **Music Recommender Simulation** from the earlier course modules. The original system used an 18-song CSV and a hand-written weighted scoring rule to recommend songs from a user's mood, genre, energy, acousticness, and valence preferences.
 
-Your goal is to:
+The extended version turns that baseline into an applied AI reliability project. It adds offline RAG-style retrieval over a real Spotify-style 500-song sample, grounded explanations, optional Gemini explanation generation, guardrails, deterministic fallback behavior, and an evaluator that measures explanation reliability.
 
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
+Video walkthrough: **TODO: paste Loom or unlisted YouTube link here before submission**
 
-This version of the project simulates a simple content-based music recommender that suggests songs based on a user's preferred vibe. It compares each song to a user taste profile using weighted features such as mood, genre, and energy, then ranks songs by how closely they match. The system is designed to be easy to explain, so each recommendation can be traced back to the features that contributed most to its score.
+## What Changed From The Base Project
 
----
+- Kept the original 18-song mood recommender in `src/recommender.py` as the baseline.
+- Added real Spotify-style CSV loading in `src/data_loader.py`.
+- Added offline retrieval in `src/retriever.py`; retrieval is the source of truth.
+- Added deterministic grounded explanations in `src/explainer.py`.
+- Added optional Gemini wording in `src/llm_explainer.py`.
+- Added validation guardrails and fallback explanations in `src/guardrails.py`.
+- Added reliability metrics in `src/evaluator.py`.
+- Added a deterministic 500-row Hugging Face dataset sample in `data/spotify_tracks_sample_500.csv`.
 
-## How The System Works
+## Architecture
 
-What features does each `Song` use in your system?
+```mermaid
+flowchart TD
+    A[CLI user command] --> B[Load CSV or fallback demo records]
+    B --> C[Offline retriever]
+    C --> D[Retrieved tracks + evidence]
+    D --> E[Deterministic explainer]
+    D --> F[Optional Gemini explainer]
+    F --> G[JSON parser]
+    G --> H[Guardrails]
+    H -->|safe| I[Final explanation]
+    H -->|unsafe or malformed| E
+    E --> I
+    I --> J[Demo or trace output]
+    H --> K[Evaluator metrics]
+    E --> K
+```
 
-Each song uses both category labels and numerical audio features. The main features are `genre`, `mood`, `energy`, `acousticness`, and `valence`. I treat mood as the main signal for vibe, genre as the style signal, energy as the intensity signal, acousticness as the organic versus electronic texture signal, and valence as the emotional positivity signal.
+The system does not ask Gemini to choose songs. Retrieval ranks tracks first using genre and audio-feature similarity. Gemini is only allowed to rewrite explanations, and guardrails reject unsupported claims like lyrics, vocals, fan reactions, or chart status.
 
-What information does your `UserProfile` store?
+## Dataset
 
-The user profile stores the user's preferred genre, preferred mood, and target values for the numerical vibe features I chose to use, especially energy, acousticness, and valence. These preferences create a simple taste profile that the recommender can compare against each song in the catalog.
-
-How does your `Recommender` compute a score for each song?
-
-The recommender uses a weighted scoring rule. My finalized algorithm recipe is:
-
-- `+3.0` points if the song's mood matches the user's favorite mood
-- `+2.0` points if the song's genre matches the user's favorite genre
-- `+2.0 * (1 - abs(song.energy - user.target_energy))`
-- `+1.0 * (1 - abs(song.acousticness - user.target_acousticness))`
-- `+0.5 * (1 - abs(song.valence - user.target_valence))`
-
-This recipe makes mood the strongest signal because the project is centered on matching a listener's vibe. Genre still matters, but it acts more like a style preference. For numerical features like energy, acousticness, and valence, the system rewards songs that are closer to the user's target values instead of simply favoring higher numbers.
-
-How do you choose which songs to recommend?
-
-After scoring every song, the recommender ranks the songs from highest score to lowest score. It then returns the top `k` songs as the recommendations. This means the system first uses a scoring rule to judge one song at a time, then uses a ranking rule to choose the best overall list.
-
-What biases or limitations do you expect from this system?
-
-This system might over-prioritize mood and genre labels, which could cause it to miss songs from other genres that still match the user's overall vibe. It may also favor songs that are close to the chosen numerical targets and ignore other important qualities, such as lyrics, vocals, cultural context, or songs that blend multiple moods at once.
-
----
-
-## Visual Results
-
-Part 1: Recommender flowchart
-
-![Recommender Flowchart](assets/recommender_flowchart.png)
-
-Part 2: Terminal output with one starter example profile
-
-![Starter Profile Terminal Output](assets/recommendations_terminal_output.png)
-
-Part 3: Terminal output for five different user profiles
-
-High-Energy Pop
-
-![High-Energy Pop Recommendations](assets/high-energy-pop-top-5-recommendations.png)
-
-Chill Lofi
-
-![Chill Lofi Recommendations](assets/chill-lofi-top-5-recommendations.png)
-
-Deep Intense Rock
-
-![Deep Intense Rock Recommendations](assets/deep-intense-rock-top-5-recommendations.png)
-
-Conflicting Vibe
-
-![Conflicting Vibe Recommendations](assets/conflicting-vibe-top-5-recommendations.png)
-
-Peaceful Punk
-
-![Peaceful Punk Recommendations](assets/peaceful-punk-top-5-recommendations.png)
-
----
-
-## Getting Started
-
-### Setup
-
-1. Create a virtual environment (optional but recommended):
-
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
-
-   ```
-
-2. Install dependencies
+The real-data path uses a deterministic 500-row sample from the Hugging Face Spotify Tracks Dataset by `maharshipandya`. The sample was created with:
 
 ```bash
+python3 scripts/create_spotify_sample.py
+```
+
+The script keeps only the columns required by the loader:
+
+```text
+track_name, artists, album_name, track_genre, popularity,
+danceability, energy, acousticness, valence, tempo
+```
+
+## Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
-3. Run the app:
+Optional Gemini setup:
 
 ```bash
-python3 -m src.main
+export GEMINI_API_KEY="your-key-here"
 ```
 
-### Running Tests
+The project still runs without a Gemini key. If the key or SDK is unavailable, it uses deterministic fallback explanations.
 
-Run the starter tests with:
+## Run The System
+
+Run the end-to-end RAG demo:
 
 ```bash
-python3 -m pytest
+python3 -m src.main demo
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+Show one retrieval and guardrail trace:
 
----
+```bash
+python3 -m src.main trace
+```
 
-## Experiments You Tried
+Run reliability evaluation:
 
-I tested the system's sensitivity by doubling the weight on energy, changing the energy similarity contribution from `2.0 * similarity` to `4.0 * similarity`. This made the recommender much more intensity-focused. Across profiles like `high_energy_pop`, `deep_intense_rock`, and `conflicting_vibe`, songs with similar energy levels rose in the rankings even when they did not match the user's preferred genre. The clearest example was the `peaceful_punk` profile, where calm low-energy songs outranked the actual punk track because their energy values were much closer to the user's target.
+```bash
+python3 -m src.main evaluate
+```
 
-This change made the recommendations different more than it made them more accurate. In some cases it improved the vibe match by surfacing songs with a similar intensity, but it also made the system drift away from the user's stated style preferences. Overall, the experiment showed that energy is a powerful feature, but if it is weighted too heavily, the recommender becomes less genre-aware and less precise.
+Run tests:
 
----
+```bash
+python3 -m pytest -q
+```
 
-##`model_card.md`
+Current verified result:
 
-This starter template content is now fully answered in [model_card.md](model_card.md). See that file for the completed model card.
+```text
+42 passed
+```
+
+## Sample Outputs
+
+Demo output shows retrieval over the 500-song sample:
+
+```text
+RAG-grounded music recommendation demo
+Catalog size: 500
+1. Ishqam by Mika Singh;Ali Quli Mirza
+   Genre: pop
+   Score: 6.31
+   Evidence:
+   - genre matches preferred genre 'pop' (+2.00)
+   - energy closeness: 0.84 vs target 0.80 (+1.92)
+```
+
+Trace output shows guardrail fallback:
+
+```text
+Gemini mode: simulated unsafe raw response for reliability demo
+Raw response: {"explanation": "This track has emotional lyrics and rich vocals."}
+Used LLM output: False
+Fallback reason: Gemini explanation failed guardrails
+Guardrail unsupported terms: ['lyrics', 'vocals']
+Final safe explanation: Ishqam by Mika Singh;Ali Quli Mirza is recommended because...
+```
+
+Evaluation output summarizes reliability:
+
+```text
+Evaluation cases: 3
+Unsupported claim rate: 0.33
+Fallback rate: 0.67
+Format failure rate: 0.33
+Global evidence coverage: 1.00
+```
+
+## Reliability Design
+
+The reliability layer checks that explanations are grounded in retrieval evidence.
+
+Measured metrics:
+
+- `unsupported_claim_rate`: how often raw LLM-style output contains unsupported terms.
+- `fallback_rate`: how often the system replaces unsafe or malformed output.
+- `format_failure_rate`: how often raw output cannot be parsed as valid JSON.
+- `global_evidence_coverage`: how much required retrieval evidence is present in final safe outputs.
+
+The evaluator intentionally includes one safe response, one unsupported-claim response, and one malformed response. This makes the guardrail behavior visible without requiring a live Gemini call during grading.
+
+## Design Decisions
+
+- Retrieval is offline and deterministic so recommendations are reproducible.
+- Gemini is only a wording layer, not the recommender.
+- The original 18-song recommender remains separate from the real-data RAG path.
+- The real dataset is sampled deterministically instead of taking the first 500 rows.
+- Fallback explanations are deterministic so unsafe or malformed LLM output never breaks the demo.
+
+## Limitations
+
+The system uses metadata and audio features, not lyrics or audio waveforms. It cannot know personal taste, cultural context, vocal style, or lyrical meaning. The 500-song sample is useful for demonstration, but it is still a small slice of a much larger music catalog.
+
+## Reflection
+
+This project taught me that applied AI reliability is mostly about boundaries: deciding what the model is allowed to know, what it must prove with evidence, and what should happen when it fails. The biggest improvement over the baseline is that recommendations now come with retriever evidence and guardrail-checked explanations.
+
+I used AI as a pair-programming partner to design the RAG pipeline, tests, guardrails, and evaluator. A helpful AI suggestion was to keep Gemini as an explanation layer instead of letting it choose recommendations. A flawed suggestion was initially spending time polishing explanation wording before the evaluator and CLI were complete; under the deadline, the higher-value move was to finish the measurable reliability path first.

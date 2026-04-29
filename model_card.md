@@ -1,190 +1,101 @@
-# 🎧 Model Card: Music Recommender Simulation
+# Model Card: Music RAG Reliability Benchmark
 
-## 1. Model Name  
+## Model/System Name
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
+**Music RAG Reliability Benchmark**
 
-**VibeMatch 1.0**
+## Intended Use
 
----
+This system recommends music tracks from a Spotify-style dataset and explains why each track was retrieved. It is intended as a classroom applied AI system, not a production recommender.
 
-## 2. Intended Use  
+The system is useful for demonstrating:
 
-Describe what your recommender is designed to do and who it is for. 
+- offline retrieval over structured music features
+- grounded explanation generation
+- optional Gemini wording
+- guardrails and deterministic fallback
+- reliability evaluation metrics
 
-Prompts:  
+## Base Project
 
-- What kind of recommendations does it generate  
+The base project was **Music Recommender Simulation**, an 18-song mood-based recommender. It ranked songs using a weighted scoring rule over mood, genre, energy, acousticness, and valence.
 
-This recommender generates a short ranked list of songs from a small catalog based on a user's preferred vibe. It is designed to recommend songs that are close to the user's mood, genre, and numeric feature targets.
+The original project was explainable but small. This final version keeps that baseline and adds a real-data RAG-style path with 500 sampled tracks, evidence-based retrieval, LLM explanation validation, and reliability metrics.
 
-- What assumptions does it make about the user  
+## How It Works
 
-It assumes a user can be represented by one main mood, one favorite genre, and target values for energy, acousticness, and valence. It also assumes that songs with similar feature values will feel like good recommendations.
+1. Load tracks from `data/spotify_tracks_sample_500.csv`.
+2. Convert rows into normalized `TrackRecord` objects.
+3. Retrieve top tracks using genre and audio-feature similarity.
+4. Carry evidence strings forward from retrieval.
+5. Generate deterministic explanations or optional Gemini explanations.
+6. Run guardrails against explanation text and evidence.
+7. Use deterministic fallback when Gemini output is malformed or unsupported.
+8. Evaluate reliability with predefined benchmark queries.
 
-- Is this for real users or classroom exploration  
+## Data
 
-This system is for classroom exploration, not for real users. Its main purpose is to show how a simple recommender can turn user preferences and song features into ranked outputs.
+The real-data path uses a deterministic 500-row sample from the Hugging Face Spotify Tracks Dataset. The sample includes track name, artists, album name, genre, popularity, danceability, energy, acousticness, valence, and tempo.
 
----
+The dataset does not include lyrics, vocals, user listening history, reviews, or cultural context. For that reason, explanations are not allowed to claim anything about lyrics, vocals, fan popularity, live performance, or awards.
 
-## 3. How the Model Works  
+## Reliability Evaluation
 
-Explain your scoring approach in simple language.  
+Current verified automated test result:
 
-Prompts:  
+```text
+42 passed
+```
 
-- What features of each song are used (genre, energy, mood, etc.)  
+The evaluator runs three predefined retrieval cases and reports:
 
-Each song uses `genre`, `mood`, `energy`, `acousticness`, and `valence` as the main recommendation features. I treat mood as the strongest signal for vibe, while genre, energy, acousticness, and valence help refine the match.
+- unsupported claim rate
+- fallback rate
+- format failure rate
+- global evidence coverage
 
-- What user preferences are considered  
+Current evaluator demo output:
 
-The model considers the user's preferred genre, preferred mood, target energy, target acousticness, and target valence. These values create a simple taste profile that can be compared against every song in the catalog.
+```text
+Unsupported claim rate: 0.33
+Fallback rate: 0.67
+Format failure rate: 0.33
+Global evidence coverage: 1.00
+```
 
-- How does the model turn those into a score  
+This shows that unsafe raw LLM-style output is detected and replaced, while final explanations preserve evidence coverage.
 
-The model gives a large bonus when a song matches the user's preferred mood and a smaller bonus when it matches the preferred genre. Then it adds similarity points for how close the song is to the user's target energy, acousticness, and valence values. Songs with higher total scores are ranked higher in the recommendation list.
+## Guardrails
 
-- What changes did you make from the starter logic  
+Guardrails check for:
 
-I changed the starter logic by adding a real scoring rule, explanation strings, multiple user profiles for testing, and more songs in the dataset. I also made the system reward similarity on numeric features instead of just checking exact matches.
+- empty explanations
+- unsupported claims such as lyrics, vocals, fan favorite, chart-topping, or live performance
+- missing retrieval evidence
+- incomplete evidence fields
 
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+Error-level violations trigger fallback. Warning-level violations are measured but do not trigger fallback.
 
----
+## Limitations and Bias
 
-## 4. Data  
+The system may overvalue numeric audio-feature similarity because it does not know the listener's full context. It also depends on the dataset's genre labels and Spotify-style features, which may not represent all cultures, languages, genres, or listening situations equally.
 
-Describe the dataset the model uses.  
+The system should not be used to make claims about lyrical meaning, vocal quality, popularity, or cultural significance because those fields are not available in the evidence.
 
-Prompts:  
+## Misuse Risks
 
-- How many songs are in the catalog  
+The main misuse risk is presenting generated explanations as if they know more than the dataset supports. The guardrails reduce this risk by rejecting unsupported claims and falling back to deterministic explanations.
 
-The catalog currently contains 18 songs in `data/songs.csv`.
+## AI Collaboration Reflection
 
-- What genres or moods are represented  
+I used AI to help reason through system architecture, test design, guardrails, and deadline tradeoffs. A helpful suggestion was to preserve the original recommender separately from the real-data RAG path, which made the extension easier to explain.
 
-The dataset includes genres such as pop, lofi, rock, ambient, jazz, synthwave, indie pop, folk, edm, r&b, country, punk, classical, hip-hop, and dream pop. The moods include happy, chill, intense, relaxed, moody, focused, nostalgic, excited, romantic, hopeful, rebellious, peaceful, confident, and ethereal.
+A flawed suggestion was to spend time tightening explanation wording before the evaluator and CLI were complete. That would have improved polish, but it was not the highest-value move for the rubric. I adjusted by prioritizing the evaluator, trace command, and documentation needed to prove reliability.
 
-- Did you add or remove data  
+## Future Improvements
 
-Yes. I added 8 new songs to the starter dataset to make the catalog more diverse and to test the recommender on a wider range of genres and moods.
-
-- Are there parts of musical taste missing in the dataset  
-
-Yes. The dataset is still very small and does not include lyrics, language, artist popularity, era, instrumentation details, or more complex emotional categories. It also does not cover every genre or listening context that real users might care about.
-
----
-
-## 5. Strengths  
-
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-
-The system works best for users with clear and focused preferences, such as `high_energy_pop`, `chill_lofi`, or `deep_intense_rock`. It performs well when the user's taste can be described by one strong mood and a few matching numeric feature targets.
-
-- Any patterns you think your scoring captures correctly  
-
-I think the scoring captures overall vibe fairly well, especially the difference between calm and energetic songs. It also does a good job finding songs that are close in mood and still flexible enough to surface related songs from nearby genres when the numeric features are similar.
-
-- Cases where the recommendations matched your intuition  
-
-The recommendations matched my intuition most clearly for the `chill_lofi` and `deep_intense_rock` profiles. For example, `Library Rain` and `Midnight Coding` rose to the top for `chill_lofi`, while `Storm Runner` ranked first for `deep_intense_rock`, which felt correct based on the features in the dataset.
-
----
-
-## 6. Limitations and Bias 
-
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-
-The recommender does not consider lyrics, language, vocals, cultural meaning, or personal memories connected to a song. It only uses the structured features in the CSV, so it misses many reasons why a listener might actually like or dislike a track.
-
-- Genres or moods that are underrepresented  
-
-Some genres and moods are underrepresented because the catalog is small and several categories appear only once. That means the system has fewer chances to recommend those styles, even when a user might enjoy them.
-
-- Cases where the system overfits to one preference  
-
-Because the model is mood-first, it can overfit to the user's preferred mood and push down songs that differ in mood but still match the user's taste in other ways. The numeric features can also create a narrow vibe bubble where songs with similar energy, acousticness, and valence keep appearing repeatedly.
-
-- Ways the scoring might unintentionally favor some users  
-
-The scoring may unintentionally favor users whose tastes fit neatly into one main mood, one genre, and a few target feature values. Users with mixed, changing, or less represented tastes may get weaker recommendations because the model assumes everyone has the same general taste shape.
-
----
-
-## 7. Evaluation  
-
-How you checked whether the recommender behaved as expected. 
-
-Prompts:  
-
-- Which user profiles you tested  
-
-I tested five user profiles: `high_energy_pop`, `chill_lofi`, `deep_intense_rock`, `conflicting_vibe`, and `peaceful_punk`. These profiles gave me a mix of normal listening preferences and adversarial cases with conflicting signals.
-
-- What you looked for in the recommendations  
-
-I looked at whether the top songs matched the intended vibe, not just the exact genre or mood labels. I also checked whether the explanation strings made sense and whether songs with similar energy, acousticness, and valence were being ranked in a reasonable order.
-
-- What surprised you  
-
-What surprised me most was how often songs from other genres still appeared when their numeric features were close to the target. A good example is `Gym Hero`, which kept showing up for profiles that wanted intensity or upbeat energy even when the genre was not the main match. This made sense after I looked at the explanation strings, because the song often scored well on energy and other vibe features.
-
-- Any simple tests or comparisons you ran  
-
-I compared the results across all five profiles and wrote down how the top recommendations changed. I also ran a sensitivity test by temporarily doubling the energy weight from `2.0` to `4.0` and then comparing the rankings before and after the change. That test showed that the system became more intensity-focused and less genre-aware, which helped confirm that my current baseline model is mainly mood-first, with genre and energy acting as secondary signals.
-
----
-
-## 8. Future Work  
-
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-
-I would add more features such as tempo ranges, lyric themes, release era, and whether a song feels more electronic or live. I would also allow users to express broader preferences instead of only one favorite mood and one favorite genre.
-
-- Better ways to explain recommendations  
-
-I would improve the explanations by making them more natural and user-friendly, such as saying a song was recommended because it is "calm and acoustic" instead of only listing score components. That would make the reasoning easier for non-programmers to understand.
-
-- Improving diversity among the top results  
-
-I would add a diversity rule so the top results are not all near-duplicates of the same vibe. This could help the recommender suggest songs from different but still relevant genres or moods.
-
-- Handling more complex user tastes  
-
-I would let the model support multiple moods, multiple favorite genres, or changing preferences based on context, like studying, working out, or relaxing. That would better reflect how real people listen to music.
-
----
-
-## 9. Personal Reflection  
-
-A few sentences about your experience.  
-
-Prompts:  
-
-- What you learned about recommender systems  
-
-I learned that recommender systems are really built from small design choices that add up. Even a simple scoring rule can strongly shape what a user sees, which made recommendation results feel much less mysterious to me.
-
-- Something unexpected or interesting you discovered  
-
-One interesting thing I discovered was how often a song like `Gym Hero` kept showing up for very different profiles. At first that felt surprising, but it made sense once I saw how strongly the numeric vibe features could support a song even when the genre was not a perfect match.
-
-- How this changed the way you think about music recommendation apps  
-
-This project made me think of music recommendation apps as systems that are always balancing tradeoffs between accuracy, simplicity, and diversity. It also showed me that human judgment still matters because a model can find mathematically similar songs without fully understanding what the listener actually meant.
+- Add more diverse benchmark queries.
+- Add a small human evaluation form for explanation quality.
+- Compare deterministic explanations against live Gemini outputs when an API key is available.
+- Add diversity-aware retrieval so top recommendations are not too similar.
+- Add richer metadata sources if lyrics, release era, or artist context become available.
