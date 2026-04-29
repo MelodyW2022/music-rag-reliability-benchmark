@@ -3,14 +3,19 @@ Tiny command line demo for the retrieval-grounded music recommender.
 
 Run:
     python3 -m src.main demo
+    python3 -m src.main demo --csv data/spotify_tracks_sample_500.csv
 """
 
 import argparse
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 
-from .data_loader import TrackRecord
+from .data_loader import TrackRecord, load_track_records
 from .explainer import explain_recommendations
 from .retriever import RetrievalQuery, retrieve_tracks
+
+
+DEFAULT_REAL_DATASET_PATH = "data/spotify_tracks_sample_500.csv"
 
 
 def make_demo_records() -> List[TrackRecord]:
@@ -60,6 +65,16 @@ def make_demo_records() -> List[TrackRecord]:
     ]
 
 
+def load_demo_records(csv_path: Optional[str], limit: Optional[int]) -> List[TrackRecord]:
+    """
+    Load real CSV records when available, otherwise use the tiny built-in catalog.
+    """
+    if csv_path and Path(csv_path).exists():
+        return load_track_records(csv_path, limit=limit)
+
+    return make_demo_records()
+
+
 def make_demo_query() -> RetrievalQuery:
     """
     Create one hardcoded query for a high-energy pop recommendation demo.
@@ -73,18 +88,23 @@ def make_demo_query() -> RetrievalQuery:
     )
 
 
-def run_demo() -> None:
+def run_demo(
+    csv_path: Optional[str] = DEFAULT_REAL_DATASET_PATH,
+    limit: Optional[int] = None,
+) -> None:
     """
-    Run the loader-free demo pipeline: records -> retrieve -> explain -> print.
+    Run the demo pipeline: records -> retrieve -> explain -> print.
     """
-    records = make_demo_records()
+    records = load_demo_records(csv_path=csv_path, limit=limit)
     query = make_demo_query()
 
-    retrieved = retrieve_tracks(query=query, records=records, k=3)
+    retrieved = retrieve_tracks(query=query, records=records, k=5)
     explanations = explain_recommendations(retrieved)
 
     print("RAG-grounded music recommendation demo")
     print("=" * 48)
+    print(f"Catalog size: {len(records)}")
+    print()
 
     for index, item in enumerate(explanations, start=1):
         print(f"{index}. {item.track_name} by {item.artist_name}")
@@ -99,15 +119,26 @@ def run_demo() -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     """
-    Build the minimal command line parser for tonight's demo.
+    Build the command line parser for the demo.
     """
     parser = argparse.ArgumentParser(
-        description="Run a tiny retrieval-grounded music recommendation demo."
+        description="Run a retrieval-grounded music recommendation demo."
     )
     parser.add_argument(
         "command",
         choices=["demo"],
         help="Command to run. Currently only 'demo' is supported.",
+    )
+    parser.add_argument(
+        "--csv",
+        default=DEFAULT_REAL_DATASET_PATH,
+        help="Spotify-style CSV path to load for the demo.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Optional maximum number of CSV records to load.",
     )
     return parser
 
@@ -117,7 +148,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "demo":
-        run_demo()
+        run_demo(csv_path=args.csv, limit=args.limit)
 
 
 if __name__ == "__main__":
