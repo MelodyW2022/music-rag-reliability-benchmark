@@ -6,7 +6,7 @@ This project extends my original **Music Recommender Simulation** from the earli
 
 The extended version turns that baseline into an applied AI reliability project. It adds offline RAG-style retrieval over a real Spotify-style 500-song sample, grounded explanations, optional Gemini explanation generation, guardrails, deterministic fallback behavior, and an evaluator that measures explanation reliability.
 
-Video walkthrough: **TODO: paste Loom or unlisted YouTube link here before submission**
+Video walkthrough: https://youtu.be/QBHgzb6XJwI
 
 ## What Changed From The Base Project
 
