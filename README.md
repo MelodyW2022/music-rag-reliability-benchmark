@@ -25,6 +25,24 @@ Video walkthrough: https://youtu.be/QBHgzb6XJwI
 
 The system does not ask Gemini to choose songs. Retrieval ranks tracks first using genre and audio-feature similarity. Gemini is only allowed to rewrite explanations, and guardrails reject unsupported claims like lyrics, vocals, fan reactions, or chart status.
 
+## Reliability Evidence
+
+### 1. Gemini Response + Guardrail Check
+
+![Gemini response and guardrail check](assets/gemini-guardrail-check.png)
+
+### 2. Guardrail Fallback Example
+
+![Guardrail fallback example](assets/guardrail-fallback.png)
+
+### 3. Evaluation Metrics
+
+![Evaluation metrics](assets/evaluation-metrics.png)
+
+### 4. Automated Tests
+
+![Automated tests](assets/automated-tests.png)
+
 ## Dataset
 
 The real-data path uses a deterministic 500-row sample from the Hugging Face Spotify Tracks Dataset by `maharshipandya`. The sample was created with:
